@@ -2,10 +2,10 @@
 projectRootDir = fileparts(mfilename('fullpath'));
 
 %% Remove project directories from path:
-% rmpath(fullfile(projectRootDir,'data'));
+rmpath(fullfile(projectRootDir,'data'));
 rmpath(fullfile(projectRootDir,'functions'));
-% rmpath(fullfile(projectRootDir,'models'));
-% rmpath(fullfile(projectRootDir,'scripts'));
+rmpath(fullfile(projectRootDir,'models'));
+rmpath(fullfile(projectRootDir,'scripts'));
 % rmpath(fullfile(projectRootDir,'system identification'));
 % rmpath(fullfile(projectRootDir,'trajectory'));
 rmpath(fullfile(projectRootDir,'work'));
