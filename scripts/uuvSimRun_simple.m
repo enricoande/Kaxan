@@ -13,7 +13,7 @@ rovSimSetup;
 
 % Initial conditions:
 ics = zeros(12,1);         % initial conditions (m, rad, m/s & rad/s)
-V   = [1;1;0;0];           % thrusters' voltage (V)
+V   = [2;2;0;0];           % thrusters' voltage (V)
 v_c = [0;0;0;0;0;0];       % current velocity (m/s)
 % Faheem: you may play with this data and see what happens. Does it match
 % your expectations? Note that if you want a circle manoeuver, you will
