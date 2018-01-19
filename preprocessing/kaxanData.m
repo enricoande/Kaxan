@@ -20,6 +20,16 @@ line_520_x = line_520(:,1);
 line_520_y = line_520(:,2);
 line_540_x = line_540(:,1);
 line_540_y = line_540(:,2);
+
+line_520_x_1 = line_520_x(1:24);
+line_520_y_1 = abs(line_520_y(1:24));
+line_520_x_2 = line_520_x(25:end);
+line_520_y_2 = line_520_y(25:end);
+line_540_x_1 = line_540_x(1:21);
+line_540_y_1 = abs(line_540_y(1:21));
+line_540_x_2 = line_540_x(22:end);
+line_540_y_2 = line_540_y(22:end);
+
 % Data after the fit:
 theta_520 = [0.6738,0.7566,-0.3969,-1.241];
 theta_540 = [0.7696,0.03518,1.256,-0.1574];
