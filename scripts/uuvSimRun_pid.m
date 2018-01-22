@@ -1,6 +1,7 @@
 % uuvSimRun.m     e.anderlini@ucl.ac.uk     18/01/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This script simulates the dynamics of an UUV using trajectory control.
+% This script simulates the dynamics of an UUV using trajectory control
+% with PID control.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean up:
