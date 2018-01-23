@@ -1,7 +1,7 @@
-% uuvSimRun.m     e.anderlini@ucl.ac.uk     18/01/2018
+% uuvSimRun_mfsm.m     e.anderlini@ucl.ac.uk     22/01/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script simulates the dynamics of an UUV using trajectory control
-% with PID control.
+% with model-free sliding-modes control.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean up:
@@ -20,14 +20,14 @@ v_c = [0;0;0;0;0;0];           % current velocity (m/s)
 T = [rov.T(1:3,:);rov.T(6,:)]; % thrust allocation matrix for 4 DOF
 Tinv = pinv(T);                % inverse of the thrust allocation matrix
 
-%% PID controller gains:
-kp = [100;100;200;100];        % proportional gain
-kd = [5;5;5;5];                % derivative gain
-ki = [10;10;10;10];            % integral gain
+%% Gain matrices:
+A  = eye(4);
+Kd = 500*eye(4);
+Ki = 0.1*eye(4);
 
 %% Waypoints and trajectory initialization:
 waypoints = [0,0,0,0,0,0;...
-             2,2,2,0,0,1]; %...
+             2,1,1,0,0,1]; %...
 %              2,2,0,0,0,0;...
 %              2,2,2,0,0,0;...
 %              2,2,2,0,0,2*pi;...
@@ -45,7 +45,7 @@ trj_type = 'minimum_snap';
 tic;
 %% Load the Simulink file:
 % Simulink file:
-sfile = 'uuvSim_pid';
+sfile = 'uuvSim_mfsm';
 % Load the Simulink file:
 load_system(sfile);
 

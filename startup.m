@@ -6,7 +6,7 @@ addpath(fullfile(projectRootDir,'data'),'-end');
 addpath(fullfile(projectRootDir,'functions'),'-end');
 addpath(fullfile(projectRootDir,'models'),'-end');
 addpath(fullfile(projectRootDir,'scripts'),'-end');
-% addpath(fullfile(projectRootDir,'system identification'),'-end');
+addpath(fullfile(projectRootDir,'system_identification'),'-end');
 % addpath(fullfile(projectRootDir,'trajectory'),'-end');
 addpath(fullfile(projectRootDir,'work'),'-end');
 

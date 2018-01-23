@@ -1,7 +1,7 @@
-% uuvSimRun.m     e.anderlini@ucl.ac.uk     18/01/2018
+% uuvSimRun.m     e.anderlini@ucl.ac.uk     23/01/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script simulates the dynamics of an UUV using trajectory control
-% with PID control.
+% with model predictive control.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean up:
@@ -20,10 +20,21 @@ v_c = [0;0;0;0;0;0];           % current velocity (m/s)
 T = [rov.T(1:3,:);rov.T(6,:)]; % thrust allocation matrix for 4 DOF
 Tinv = pinv(T);                % inverse of the thrust allocation matrix
 
-%% PID controller gains:
-kp = [100;100;200;100];        % proportional gain
-kd = [5;5;5;5];                % derivative gain
-ki = [10;10;10;10];            % integral gain
+%% Generate the LTI model of the Kaxan ROV in 4 DOF:
+M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
+    [rov.M_A(1:3,1:3),rov.M_A(1:3,6);rov.M_A(6,1:3),rov.M_A(6,6)];
+D = [rov.D_l(1:3,1:3),rov.D_l(1:3,6);rov.D_l(6,1:3),rov.D_l(6,6)];
+G = zeros(4);
+M_inv = pinv(M);
+
+A = [zeros(4),eye(4);-M_inv*G,-M_inv*D];
+B = [zeros(4);M_inv];
+E = [zeros(4);M_inv];
+C = eye(8);
+
+sys  = ss(A,B,C,0);
+sysd = c2d(sys,mdl.tStep);
+
 
 %% Waypoints and trajectory initialization:
 waypoints = [0,0,0,0,0,0;...
@@ -45,7 +56,7 @@ trj_type = 'minimum_snap';
 tic;
 %% Load the Simulink file:
 % Simulink file:
-sfile = 'uuvSim_pid';
+sfile = 'uuvSim_mpc';
 % Load the Simulink file:
 load_system(sfile);
 
