@@ -22,26 +22,26 @@ simin = [t,f_4dof,x_4dof];
 load('rov.mat');
 
 %% Generate the LTI model of the Kaxan ROV in 4 DOF:
-M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
-    [rov.M_A(1:3,1:3),rov.M_A(1:3,6);rov.M_A(6,1:3),rov.M_A(6,6)];
-D = [rov.D_l(1:3,1:3),rov.D_l(1:3,6);rov.D_l(6,1:3),rov.D_l(6,6)];
-G = zeros(4);
-M_inv = pinv(M);
-
-A = [zeros(4),eye(4);-M_inv*G,-M_inv*D];
-B = [zeros(4);M_inv];
-E = [zeros(4);M_inv];
-C = eye(8);
+% M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
+%     [rov.M_A(1:3,1:3),rov.M_A(1:3,6);rov.M_A(6,1:3),rov.M_A(6,6)];
+% D = [rov.D_l(1:3,1:3),rov.D_l(1:3,6);rov.D_l(6,1:3),rov.D_l(6,6)];
+% G = zeros(4);
+% M_inv = pinv(M);
+% 
+% A = [zeros(4),eye(4);-M_inv*G,-M_inv*D];
+% B = [zeros(4);M_inv];
+% E = [zeros(4);M_inv];
+% C = eye(8);
 
 % % Load pre-generated identified system:
 % load('ss.mat');
 
 % Specify values for the covariance matrix:
-R = 0.05*eye(12);
+R = 0.01*eye(12);
 
 %% Run the Simulink file:
 % Simulink file:
-sfile = 'ls_reg';
+sfile = 'rls_est';
 % Load the Simulink file:
 load_system(sfile);
 
