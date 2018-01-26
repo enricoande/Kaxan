@@ -1,7 +1,7 @@
-% uuvSimRun.m     e.anderlini@ucl.ac.uk     23/01/2018
+% uuvSimRun.m     e.anderlini@ucl.ac.uk     26/01/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script simulates the dynamics of an UUV using trajectory control
-% with model predictive control.
+% with LQR control.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean up:
@@ -21,20 +21,27 @@ T = [rov.T(1:3,:);rov.T(6,:)]; % thrust allocation matrix for 4 DOF
 Tinv = pinv(T);                % inverse of the thrust allocation matrix
 
 %% Generate the LTI model of the Kaxan ROV in 4 DOF:
-% M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
-%     [rov.M_A(1:3,1:3),rov.M_A(1:3,6);rov.M_A(6,1:3),rov.M_A(6,6)];
-% D = [rov.D_l(1:3,1:3),rov.D_l(1:3,6);rov.D_l(6,1:3),rov.D_l(6,6)];
-% G = zeros(4);
-% M_inv = pinv(M);
-% 
-% A = [zeros(4),eye(4);-M_inv*G,-M_inv*D];
-% B = [zeros(4);M_inv];
-% E = [zeros(4);M_inv];
-% C = eye(8);
-% 
-% sys  = ss(A,B,C,0);
-% sysd = c2d(sys,0.1);
-load('mpc.mat');
+M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
+    [rov.M_A(1:3,1:3),rov.M_A(1:3,6);rov.M_A(6,1:3),rov.M_A(6,6)];
+D = [rov.D_l(1:3,1:3),rov.D_l(1:3,6);rov.D_l(6,1:3),rov.D_l(6,6)];
+G = zeros(4);
+M_inv = pinv(M);
+
+A = [zeros(4),eye(4);-M_inv*G,-M_inv*D];
+B = [zeros(4);M_inv];
+C = eye(8);
+D = zeros(8,4);
+E = [zeros(4);M_inv];
+
+%% Prepare LQR control:
+% Generate the state-space system: 
+sys  = ss(A,B,C,0);
+% Specify the matrices Q and R:
+Q = 0.05*eye(8);
+R = 0.1*eye(4);
+N = 0;
+
+[K,S,e] = lqr(sys,Q,R,N);
 
 %% Waypoints and trajectory initialization:
 waypoints = [0,0,0,0,0,0;...
@@ -56,7 +63,7 @@ trj_type = 'minimum_snap';
 tic;
 %% Load the Simulink file:
 % Simulink file:
-sfile = 'uuvSim_mpc';
+sfile = 'uuvSim_lqr';
 % Load the Simulink file:
 load_system(sfile);
 

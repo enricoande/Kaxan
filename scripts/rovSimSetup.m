@@ -12,7 +12,7 @@
 
 %% Simulation set-up:
 mdl.tStep = 0.01; % time step length (s)
-mdl.tEnd  = 20;   % end time (s)
+mdl.tEnd  = 0.5; %20;   % end time (s)
 
 %% ROV model set-up:
 load('rov.mat');  % rov object
