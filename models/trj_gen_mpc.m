@@ -18,7 +18,7 @@ function setup(block)
     block.SetPreCompOutPortInfoToDynamic;
     
     % Size the output ports correctly:
-    block.OutputPort(1).Dimensions = [10,8];
+    block.OutputPort(1).Dimensions = [25,8];
     
     % Set the output ports' sampling mode:
     block.OutputPort(1).SamplingMode = 'Sample';
