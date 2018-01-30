@@ -1,4 +1,4 @@
-% uuvSimRun.m     e.anderlini@ucl.ac.uk     23/01/2018
+% uuvSimRun.m     e.anderlini@ucl.ac.uk     30/01/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script simulates the dynamics of an UUV using trajectory control
 % with model predictive control.
@@ -17,33 +17,32 @@ ics = zeros(12,1);             % initial conditions (m & rad)
 v_c = [0;0;0;0;0;0];           % current velocity (m/s)
 
 % Pre-processing:
-T = [rov.T(1:3,:);rov.T(6,:)]; % thrust allocation matrix for 4 DOF
+T = rov.T(1:3,:);              % thrust allocation matrix for 4 DOF
 Tinv = pinv(T);                % inverse of the thrust allocation matrix
 
 %% Generate the LTI model of the Kaxan ROV in 4 DOF:
-M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
-    [rov.M_A(1:3,1:3),rov.M_A(1:3,6);rov.M_A(6,1:3),rov.M_A(6,6)];
-D = [rov.D_l(1:3,1:3),rov.D_l(1:3,6);rov.D_l(6,1:3),rov.D_l(6,6)];
-G = zeros(4);
+M = rov.M_B(1:3,1:3) + rov.M_A(1:3,1:3);
+D = rov.D_l(1:3,1:3);
+G = zeros(3);
 M_inv = pinv(M);
 
 % Create the state-space matrices:
-A = [zeros(4),eye(4);-M_inv*G,-M_inv*D];
-B = [zeros(4);M_inv];
-E = [zeros(4);M_inv];
-C = eye(8);
+A = [zeros(3),eye(3);-M_inv*G,-M_inv*D];
+B = [zeros(3);M_inv];
+E = [zeros(3);M_inv];
+C = eye(6);
 
 % Create the continuous-timestate-space system:
 sys  = ss(A,B,C,0);
 
 %% MPC:
 % Define the prediction and control horizons:
-p = 10;
-m = 2;
+p = 25;
+m = 10;
 % Define the time step of the model predictive control:
 dt = 0.1;
 % Initialize the model predictive control object:
-mpc_kaxan = mpc(sys,dt,p,m);
+mpc_kaxan_3dof = mpc(sys,dt,p,m);
 
 %% Waypoints and trajectory initialization:
 waypoints = [0,0,0,0,0,0;...
@@ -65,7 +64,7 @@ trj_type = 'minimum_snap';
 tic;
 %% Load the Simulink file:
 % Simulink file:
-sfile = 'uuvSim_mpc';
+sfile = 'uuvSim_mpc_3dof';
 % Load the Simulink file:
 load_system(sfile);
 
@@ -92,8 +91,8 @@ plotMotions(t,x);
 % % Plot the difference in motions (error):
 % plotMotions(t,x_des-x);
 
-% % Plot the AUV's forces:
-% plotForces(t,f);
+% Plot the AUV's forces:
+plotForces(t,f);
 % % Plot the AUV's path:
 % plotPath(x,waypoints);
 % % Animate the AUV's motion:

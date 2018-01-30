@@ -88,7 +88,7 @@ void propulsors_force(SimStruct *S)
             // Fit polynomial only outside of the dead zone:
             if (*V[m]<-0.5 || *V[m]>0.5) {
                 for (j=0;j<O;j++) {
-                    rw[m] += coeffs[l][j] * pow(*V[m],O-j-1.0); } } } }
+                    rw[m] += coeffs[k][j] * pow(*V[m],O-j-1.0); } } } }
 }
 // ------------------------------------------------------------------------
         
@@ -240,7 +240,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
     // Compute the thrust force:
     int_T i,j;   // counters
     real_T tmp;  // temporary variable
-
+    
     for(i=0;i<DOF;i++)
     {
         tmp = 0.0;
