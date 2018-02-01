@@ -33,8 +33,11 @@ load('rov.mat');
 % E = [zeros(4);M_inv];
 % C = eye(8);
 
-% % Load pre-generated identified system:
-% load('ss.mat');
+% Load pre-generated identified system:
+load('ss.mat');
+sys = ss(A,B,C,0);
+% Convert it to discrete time:
+sysd = c2d(sys,0.1);
 
 % Specify values for the covariance matrix:
 R = 0.01*eye(12);
@@ -54,6 +57,9 @@ close_system(sfile);
 %% Post-processing:
 % Extract the data to be plotted:
 x_hat = sout.get('logsout').getElement('x_hat').Values.Data;
+Ad = sout.get('logsout').getElement('A').Values.Data;
+Bd = sout.get('logsout').getElement('B').Values.Data;
 
 % Plot the data:
 sysid_plot(t,x_4dof,x_hat);
+mat_plot(t,Ad,Bd,sysd.A,sysd.B);
