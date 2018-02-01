@@ -37,13 +37,20 @@ Tinv = pinv(T);                % inverse of the thrust allocation matrix
 load('ss.mat');
 % Create the continuous-timestate-space system:
 sys  = ss(A,B,C,0);
+% Define the time step of the model predictive control:
+dt = 0.1;
+% Convert it to discrete time:
+sysd = c2d(sys,dt);
+% Extract the matrices of the discrete system to initialize adaptive MPC:
+Ad = sysd.A;
+Bd = sysd.B;
+Cd = sysd.C;
+Dd = sysd.D;
 
 %% MPC:
 % Define the prediction and control horizons:
 p = 25;
 m = 10;
-% Define the time step of the model predictive control:
-dt = 0.1;
 % Define other parameters:
 nu = 4;   % no. manipulated variables (4 DOF thrust vector)
 W.MV     = zeros(1,nu);       % manipulated variables weights
@@ -56,7 +63,11 @@ Y  = zeros(8,1);
 U  = zeros(4,1);
 
 % Initialize the model predictive control object:
-mpc_kaxan = mpc(sys,dt,p,m,W);
+mpc_kaxan = mpc(sysd,dt,p,m,W);
+
+%% On-line Recursive Least-Squares Estimator preparation:
+% Specify values for the covariance matrix:
+R = 0.01*eye(12);
 
 %% Waypoints and trajectory initialization:
 waypoints = [0,0,0,0,0,0;...
