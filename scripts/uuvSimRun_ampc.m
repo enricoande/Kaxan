@@ -108,6 +108,8 @@ f = [sout.get('logsout').getElement('thrust').Values.Data,...
     sout.get('logsout').getElement('forces').Values.Data];
 % x_des = [sout.get('logsout').getElement('des_pos').Values.Data,...
 %     sout.get('logsout').getElement('des_vel').Values.Data];
+Ad = sout.get('logsout').getElement('A').Values.Data;
+Bd = sout.get('logsout').getElement('B').Values.Data;
 
 % Plot the AUV's motions:
 plotMotions(t,x);

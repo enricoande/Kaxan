@@ -8,7 +8,7 @@ clear;
 close all;
 
 %% Load the data to be fitted:
-load('tmp.mat');
+load('tmp1.mat'); %'tmp.mat' %'tmp1.mat'
 dt = t(2)-t(1);
 tEnd = t(end);
 
@@ -40,7 +40,7 @@ sys = ss(A,B,C,0);
 sysd = c2d(sys,0.1);
 
 % Specify values for the covariance matrix:
-R = 0.01*eye(12);
+R = 0.1*eye(12);
 
 %% Run the Simulink file:
 % Simulink file:
@@ -62,4 +62,5 @@ Bd = sout.get('logsout').getElement('B').Values.Data;
 
 % Plot the data:
 sysid_plot(t,x_4dof,x_hat);
-mat_plot(t,Ad,Bd,sysd.A,sysd.B);
+% Plot the matrix entries:
+mat_plot(Ad,Bd,sysd.A,sysd.B);

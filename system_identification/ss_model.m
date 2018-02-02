@@ -51,8 +51,8 @@ function Output(block)
     Ad = [];
     Bd = [];
     for i=1:8
-        Ad = [Ad;block.InputPort(i).Data(1:8)'];
-        Bd = [Bd;block.InputPort(i).Data(9:12)'];
+        Ad = [Ad;block.InputPort(i).Data(5:12)'];
+        Bd = [Bd;block.InputPort(i).Data(1:4)'];
     end
     
     % Otherwise output the matrices Ad and Bd estimated on-line:
