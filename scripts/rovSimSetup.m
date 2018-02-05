@@ -15,4 +15,4 @@ mdl.tStep = 0.01; % time step length (s)
 mdl.tEnd  = 25; %20;   % end time (s)
 
 %% ROV model set-up:
-load('rov.mat');  % rov object
+load('rov_sphere.mat');  % rov object  %'rov.mat' %'rov_sphere.mat'
