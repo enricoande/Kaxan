@@ -1,7 +1,8 @@
-% uuvSimRun.m     e.anderlini@ucl.ac.uk     18/01/2018
+% uuvSimRun.m     e.anderlini@ucl.ac.uk     06/02/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script simulates the dynamics of an UUV using trajectory control
-% with PID control.
+% with PID control. The file relies on fast restart to simulate the ROV
+% picking up an object.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean up:
@@ -27,18 +28,13 @@ ki = [10;10;10;10];            % integral gain
 
 %% Waypoints and trajectory initialization:
 waypoints = [0,0,0,0,0,0;...
-    0,0,0,0,0,0];
-%              2,2,2,0,0,1]; %...
-%              2,2,0,0,0,0;...
-%              2,2,2,0,0,0;...
-%              2,2,2,0,0,2*pi;...
-%              2,2,0,0,0,0;...
-%              2,0,0,0,0,0;...
-%              0,0,0,0,0,0;...
-%              0,0,0,0,0,-2*pi;...
-%              2,2,2,0,0,0;...
-%              3,1,1,0,0,-pi;...
-%              2,2,2,0,0,pi];
+    2,2,2,0,0,1;...
+    0,0,0,0,0,0;...
+    0,0,0,0,0,0;...
+    0,0,0,0,0,0];%...
+%     2,2,2,0,0,1;...
+%     0,0,0,0,0,0];
+
 trj_type = 'minimum_snap';
 % waypoints = [5,1,0.2];
 % trj_type = 'helix';
@@ -49,6 +45,11 @@ tic;
 sfile = 'uuvSim_pid';
 % Load the Simulink file:
 load_system(sfile);
+% % Setup Fast Restart:
+% set_param(sfile,'FastRestart','on');
+% set_param(sfile,'SaveFinalState','on');
+% set_param(sfile,'SaveCompleteFinalSimState','on');
+% set_param(sfile,'SimulationCommand','update');
 
 %% Run the first shot:
 sout = sim(sfile,'StopTime',num2str(mdl.tEnd));
@@ -68,13 +69,13 @@ x_des = [sout.get('logsout').getElement('des_pos').Values.Data,...
 
 % Plot the AUV's motions:
 plotMotions(t,x);
-% % Plot the desired motions:
-% plotMotions(t,x_des);
+% Plot the desired motions:
+plotMotions(t,x_des);
 % % Plot the difference in motions (error):
 % plotMotions(t,x_des-x);
 
-% Plot the AUV's forces:
-plotForces(t,f);
+% % Plot the AUV's forces:
+% plotForces(t,f);
 % % Plot the AUV's path:
 % plotPath(x,waypoints);
 % % Animate the AUV's motion:

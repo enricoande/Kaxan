@@ -42,10 +42,10 @@ theta_540_1 = [-0.6473,0.4223,-0.4759];
 theta_540_2 = [1.003,0.3495,-0.07633];
 
 %% Sphere data:
-r = 0.2;
-z = 0.6;
+r = 0.15;
+z = 0.5;
 ma = 2/3*pi*rov.density*r^3;
-ms = 50;
+ms = 20;
 fd = 0.25*pi*rov.density*r^3;
 Ma = [ma,0,0,0,ma*z,0;0,ma,0,-ma*z,0,0;0,0,ma,0,0,0;0,-ma*z,0,ma*z^2,0,0;...
     ma*z,0,0,0,ma*z^2,0;0,0,0,0,0,ma*z^2];
@@ -74,9 +74,9 @@ rov.M_A = rov.M_A+Ma;
 rov.D_l = rov.D_l+Dq;
 
 %% Calculate the remaining data:
-rov.volume   = rov.m/rov.density;
-rov.weight   = rov.m*rov.g;
-rov.buoyancy = rov.weight;
+rov.volume   = (2*ma+rov.m)/rov.density;
+rov.weight   = (rov.m+ms)*rov.g;
+rov.buoyancy = (2*ma+rov.m)*rov.g;
 rov.M        = rov.M_B+rov.M_A;
 rov.inv_mass = pinv(rov.M);
 rov.S_r_g    = skew(rov.CoG);

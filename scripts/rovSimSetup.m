@@ -12,7 +12,10 @@
 
 %% Simulation set-up:
 mdl.tStep = 0.01; % time step length (s)
-mdl.tEnd  = 25; %20;   % end time (s)
+mdl.tEnd  = 60; %20;   % end time (s)
 
 %% ROV model set-up:
-load('rov_sphere.mat');  % rov object  %'rov.mat' %'rov_sphere.mat'
+load('rov.mat');  % rov object  %'rov.mat' %'rov_sphere.mat'
+
+%% Trajectory data:
+load('trj.mat');

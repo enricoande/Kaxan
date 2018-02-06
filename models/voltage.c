@@ -198,7 +198,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
         
         // 540 thrusters:
         j = i + 2;
-        if ((*thrust[i])<0) {
+        if ((*thrust[j])<0) {
             V[j]=coeffs[2][0]*pow(-*thrust[j],coeffs[2][1])+coeffs[2][2];}
         else {
             V[j]=coeffs[3][0]*pow(*thrust[j],coeffs[3][1])+coeffs[3][2];} }
