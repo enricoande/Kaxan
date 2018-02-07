@@ -60,6 +60,8 @@ close_system(sfile);
 load_system(sfile);
 clear rov;
 load('rov_sphere.mat');
+% hws = get_param(sfile,'modelworkspace');
+% hws.assignin('rov', rov);
 set_param(sfile,'SimulationCommand','update');
 % set_param(bdroot,'SimulationCommand','update');
 sout = sim(sfile,'StopTime','60','LoadInitialState','on','InitialState',...

@@ -44,8 +44,12 @@ init_sys = idss(A,B,C,D,'Ts',0);  % continuous-time state-space model
 init_sys.Structure.C.Free = false;
 init_sys.Structure.D.Free = false;
 
+% Define the data range to be used:
+s = 1;
+e = 1001;
+
 % Initialize data object:
-data = iddata(x_4dof,f_4dof,dt);
+data = iddata(x_4dof(s:e,:),f_4dof(s:e,:),dt);
 
 % Estimate the values of the state-space model:
 sys = ssest(data,init_sys);
