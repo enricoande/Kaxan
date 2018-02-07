@@ -74,6 +74,8 @@ rov.M_A = rov.M_A+Ma;
 rov.D_l = rov.D_l+Dq;
 
 %% Calculate the remaining data:
+rov.CoB(3) = (rov.CoB(3)*rov.m+z*2*ma)/(rov.m+2*ma);
+rov.CoG(3) = (rov.CoG(3)*rov.m+z*ms)/(ms+rov.m);
 rov.volume   = (2*ma+rov.m)/rov.density;
 rov.weight   = (rov.m+ms)*rov.g;
 rov.buoyancy = (2*ma+rov.m)*rov.g;

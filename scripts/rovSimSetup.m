@@ -18,4 +18,8 @@ mdl.tEnd  = 60; %20;   % end time (s)
 load('rov.mat');  % rov object  %'rov.mat' %'rov_sphere.mat'
 
 %% Trajectory data:
-load('trj.mat');
+% load('trj.mat');
+
+% Trial trajectory:
+t = 0:0.001:60;
+trj = [t',zeros(length(t),12)];
