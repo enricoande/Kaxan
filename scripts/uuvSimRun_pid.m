@@ -21,27 +21,9 @@ T = [rov.T(1:3,:);rov.T(6,:)]; % thrust allocation matrix for 4 DOF
 Tinv = pinv(T);                % inverse of the thrust allocation matrix
 
 %% PID controller gains:
-kp = [100;100;200;100];        % proportional gain
+kp = [500;500;500;100];        % proportional gain   %[500;500;500;100];
 kd = [5;5;5;5];                % derivative gain
 ki = [10;10;10;10];            % integral gain
-
-%% Waypoints and trajectory initialization:
-waypoints = [0,0,0,0,0,0;...
-    0,0,0,0,0,0];
-%              2,2,2,0,0,1]; %...
-%              2,2,0,0,0,0;...
-%              2,2,2,0,0,0;...
-%              2,2,2,0,0,2*pi;...
-%              2,2,0,0,0,0;...
-%              2,0,0,0,0,0;...
-%              0,0,0,0,0,0;...
-%              0,0,0,0,0,-2*pi;...
-%              2,2,2,0,0,0;...
-%              3,1,1,0,0,-pi;...
-%              2,2,2,0,0,pi];
-trj_type = 'minimum_snap';
-% waypoints = [5,1,0.2];
-% trj_type = 'helix';
 
 tic;
 %% Load the Simulink file:
@@ -74,7 +56,7 @@ plotMotions(t,x);
 % plotMotions(t,x_des-x);
 
 % Plot the AUV's forces:
-plotForces(t,f);
+% plotForces(t,f);
 % % Plot the AUV's path:
 % plotPath(x,waypoints);
 % % Animate the AUV's motion:
