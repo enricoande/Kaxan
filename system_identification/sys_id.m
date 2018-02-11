@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Load the data to be fitted:
-load('tmp.mat');
+load('tmp_rov.mat');
 dt = t(2)-t(1);
 tEnd = t(end);
 
