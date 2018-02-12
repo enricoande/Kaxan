@@ -8,7 +8,7 @@ clear;
 close all;
 
 %% Load the data to be fitted:
-load('tmp1.mat'); %'tmp.mat' %'tmp1.mat'
+load('tmp_rov_sphere.mat'); %'tmp.mat' %'tmp1.mat'
 dt = t(2)-t(1);
 tEnd = t(end);
 
@@ -19,7 +19,7 @@ f_4dof = [f(:,1:3),f(:,6)];
 simin = [t,f_4dof,x_4dof];
 
 %% Load the ROV data:
-load('rov.mat');
+% load('rov.mat');
 
 %% Generate the LTI model of the Kaxan ROV in 4 DOF:
 % M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
@@ -33,11 +33,11 @@ load('rov.mat');
 % E = [zeros(4);M_inv];
 % C = eye(8);
 
-% Load pre-generated identified system:
-load('ss.mat');
-sys = ss(A,B,C,0);
-% Convert it to discrete time:
-sysd = c2d(sys,0.1);
+% % Load pre-generated identified system:
+% load('ss_rov.mat');
+% sys = ss(A,B,C,0);
+% % Convert it to discrete time:
+% sysd = c2d(sys,0.1);
 
 % Specify values for the covariance matrix:
 R = 0.1*eye(12);
@@ -62,5 +62,5 @@ Bd = sout.get('logsout').getElement('B').Values.Data;
 
 % Plot the data:
 sysid_plot(t,x_4dof,x_hat);
-% Plot the matrix entries:
-mat_plot(Ad,Bd,sysd.A,sysd.B);
+% % Plot the matrix entries:
+% mat_plot(Ad,Bd,sysd.A,sysd.B);

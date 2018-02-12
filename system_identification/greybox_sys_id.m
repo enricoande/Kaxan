@@ -1,4 +1,4 @@
-% sys_id.m     e.anderlini@ucl.ac.uk     23/01/2017
+% greybox_sys_id.m     e.anderlini@ucl.ac.uk     12/02/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script is used to identify a linear model of the Kaxan ROV.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Load the data to be fitted:
-load('tmp_rov_sphere.mat');
+load('tmp_rov.mat');
 dt = t(2)-t(1);
 tEnd = t(end);
 
@@ -37,20 +37,16 @@ D = zeros(8,4);
 Q = 0.05*eye(8);
 R = 0.05*eye(8);
 
-% Specify the disturbance matrix (for case with non-neutrally buoyant ROV):
-K = zeros(8,8);
-
 %% Prepare a state-space model with identifiable parameters structure:
-% init_sys = idss(A,B,C,D,'Ts',0);  % continuous-time state-space model
-init_sys = idss(A,B,C,D,K,'Ts',0);  % continuous-time state-space model
+init_sys = idgrey(odefun,parameters,fcn_type);
+
+
+
+idss(A,B,C,D,'Ts',0);  % continuous-time state-space model
 % Constrain some parameters:
 % init_sys.Structure.A.Free(1:4,5:8) = false;
 init_sys.Structure.C.Free = false;
 init_sys.Structure.D.Free = false;
-init_sys.Structure.K.Free(1:2,:) = false;
-init_sys.Structure.K.Free(3,1:2) = false;
-init_sys.Structure.K.Free(3,4:8) = false;
-init_sys.Structure.K.Free(4:8,:) = false;
 
 % Define the data range to be used:
 s = 1;
@@ -60,24 +56,24 @@ e = 1001;
 data = iddata(x_4dof(s:e,:),f_4dof(s:e,:),dt);
 
 % Estimate the values of the state-space model:
-sys = ssest(data,init_sys);
+sys = greyest(data,init_sys);
 
 %% Test the predicted values with a Kalman filter:
-% Extract the values:
-A = sys.A;
-B = sys.B;
-C = sys.C;
-K = sys.K;
-% Simulink file:
-sfile = 'kal_fil';
-% Load the Simulink file:
-load_system(sfile);
-% Run the Simulink file:
-sout = sim(sfile,'StopTime',num2str(tEnd));
-% Close the Simulink file:
-close_system(sfile);
-
-% Extract the data to be plotted:
-x_hat = sout.get('logsout').getElement('x_hat').Values.Data;
-% Plot the data:
-sysid_plot(t,x_4dof,x_hat);
+% % Extract the values:
+% A = sys.A;
+% B = sys.B;
+% C = sys.C;
+% K = sys.K;
+% % Simulink file:
+% sfile = 'kal_fil';
+% % Load the Simulink file:
+% load_system(sfile);
+% % Run the Simulink file:
+% sout = sim(sfile,'StopTime',num2str(tEnd));
+% % Close the Simulink file:
+% close_system(sfile);
+% 
+% % Extract the data to be plotted:
+% x_hat = sout.get('logsout').getElement('x_hat').Values.Data;
+% % Plot the data:
+% sysid_plot(t,x_4dof,x_hat);
