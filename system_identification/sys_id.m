@@ -7,18 +7,22 @@ clear;
 close all;
 
 %% Load the data to be fitted:
-load('tmp_rov_sphere.mat');
+load('tmp_rov.mat');
 dt = t(2)-t(1);
 tEnd = t(end);
 
 %% Prepare the data for system identification:
+nu = 4;     % no. input variables
+nx = 8;     % no. states
 % Keep only 4 DOF:
 x_4dof = [x(:,1:3),x(:,6:9),x(:,12)];
 f_4dof = [f(:,1:3),f(:,6)];
+% d = [t(1:101).^2;ones(size(f_4dof,1)-101,1)];    % hydrostatics disturbance
+% simin = [t,f_4dof,d,x_4dof];
 simin = [t,f_4dof,x_4dof];
 
 %% Load the ROV data:
-load('rov_sphere.mat');
+load('rov.mat');
 
 %% Generate the LTI model of the Kaxan ROV in 4 DOF:
 M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
@@ -26,37 +30,38 @@ M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
 D = [rov.D_l(1:3,1:3),rov.D_l(1:3,6);rov.D_l(6,1:3),rov.D_l(6,6)];
 G = zeros(4);
 M_inv = pinv(M);
-
 A = [zeros(4),eye(4);-M_inv*G,-M_inv*D];
 B = [zeros(4);M_inv];
 E = [zeros(4);M_inv];
 C = eye(8);
 D = zeros(8,4);
+% A = zeros(8);
+% B = zeros(8,4);
 
 % Specify values for Q and R:
 Q = 0.05*eye(8);
 R = 0.05*eye(8);
 
-% Specify the disturbance matrix (for case with non-neutrally buoyant ROV):
-K = zeros(8,8);
+% % Increase the size of the input matrix to account for hydrostatics:
+% B = [B,zeros(8,1)];
+% B(7,5) = 0.25;
+% D = zeros(8,5);
 
 %% Prepare a state-space model with identifiable parameters structure:
-% init_sys = idss(A,B,C,D,'Ts',0);  % continuous-time state-space model
-init_sys = idss(A,B,C,D,K,'Ts',0);  % continuous-time state-space model
+init_sys = idss(A,B,C,D,'Ts',0);  % continuous-time state-space model
 % Constrain some parameters:
 % init_sys.Structure.A.Free(1:4,5:8) = false;
+% init_sys.Structure.B.Free(1:6,5) = false;
+% init_sys.Structure.B.Free(8,5) = false;
 init_sys.Structure.C.Free = false;
 init_sys.Structure.D.Free = false;
-init_sys.Structure.K.Free(1:2,:) = false;
-init_sys.Structure.K.Free(3,1:2) = false;
-init_sys.Structure.K.Free(3,4:8) = false;
-init_sys.Structure.K.Free(4:8,:) = false;
 
 % Define the data range to be used:
 s = 1;
-e = 1001;
+e = 3001;
 
 % Initialize data object:
+% data = iddata(x_4dof(s:e,:),[f_4dof(s:e,:),d(s:e,:)],dt);
 data = iddata(x_4dof(s:e,:),f_4dof(s:e,:),dt);
 
 % Estimate the values of the state-space model:
@@ -67,7 +72,6 @@ sys = ssest(data,init_sys);
 A = sys.A;
 B = sys.B;
 C = sys.C;
-K = sys.K;
 % Simulink file:
 sfile = 'kal_fil';
 % Load the Simulink file:
