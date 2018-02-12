@@ -1,4 +1,4 @@
-function ss_preparation(block)
+function ss_model(block)
 % ss_preparation.m     e.anderlini@ucl.ac.uk     01/02/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This is a Level-2 Matlab S-function for the computation of the velocity
@@ -10,7 +10,7 @@ end
 %% Set up the block:
 function setup(block)
     % Register number of input and output ports:
-    block.NumInputPorts  = 8;
+    block.NumInputPorts  = 4;
     block.NumOutputPorts = 2;
 
     % Setup functional port properties to dynamically inherited:
@@ -18,7 +18,7 @@ function setup(block)
     block.SetPreCompOutPortInfoToDynamic;
     
     % Size the input ports correctly and specify whether there is direct feedthrough:
-    for i=1:8
+    for i=1:4
         block.InputPort(i).Dimensions        = 12;
         block.InputPort(i).DirectFeedthrough = true;
         block.InputPort(i).SamplingMode = 0;
@@ -48,9 +48,9 @@ end
 %% Output the desired position, velocity and acceleration:
 function Output(block)
     % Build the state-space system matrices Ad and Bd:
-    Ad = [];
-    Bd = [];
-    for i=1:8
+    Ad = [zeros(4),eye(4)];
+    Bd = zeros(4);
+    for i=1:4
         Ad = [Ad;block.InputPort(i).Data(5:12)'];
         Bd = [Bd;block.InputPort(i).Data(1:4)'];
     end

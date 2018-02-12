@@ -7,22 +7,22 @@ clear;
 close all;
 
 %% Load the data to be fitted:
-load('tmp_rov.mat');
+load('tmp_rov_sphere.mat');
 dt = t(2)-t(1);
 tEnd = t(end);
 
 %% Prepare the data for system identification:
-nu = 4;     % no. input variables
+nu = 5;     % no. input variables
 nx = 8;     % no. states
 % Keep only 4 DOF:
 x_4dof = [x(:,1:3),x(:,6:9),x(:,12)];
 f_4dof = [f(:,1:3),f(:,6)];
-% d = [t(1:101).^2;ones(size(f_4dof,1)-101,1)];    % hydrostatics disturbance
-% simin = [t,f_4dof,d,x_4dof];
-simin = [t,f_4dof,x_4dof];
+d = [t(1:101).^2;ones(size(f_4dof,1)-101,1)];    % hydrostatics disturbance
+simin = [t,f_4dof,d,x_4dof];
+% simin = [t,f_4dof,x_4dof];
 
 %% Load the ROV data:
-load('rov.mat');
+load('rov_sphere.mat');
 
 %% Generate the LTI model of the Kaxan ROV in 4 DOF:
 M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
@@ -42,15 +42,16 @@ D = zeros(8,4);
 Q = 0.05*eye(8);
 R = 0.05*eye(8);
 
-% % Increase the size of the input matrix to account for hydrostatics:
-% B = [B,zeros(8,1)];
-% B(7,5) = 0.25;
-% D = zeros(8,5);
+% Increase the size of the input matrix to account for hydrostatics:
+B = [B,zeros(8,1)];
+B(7,5) = 0.25;
+D = zeros(8,5);
 
 %% Prepare a state-space model with identifiable parameters structure:
 init_sys = idss(A,B,C,D,'Ts',0);  % continuous-time state-space model
 % Constrain some parameters:
-% init_sys.Structure.A.Free(1:4,5:8) = false;
+init_sys.Structure.A.Free(1:4,:) = false;
+init_sys.Structure.B.Free(1:4,:) = false;
 % init_sys.Structure.B.Free(1:6,5) = false;
 % init_sys.Structure.B.Free(8,5) = false;
 init_sys.Structure.C.Free = false;
@@ -58,11 +59,11 @@ init_sys.Structure.D.Free = false;
 
 % Define the data range to be used:
 s = 1;
-e = 3001;
+e = 1001;
 
 % Initialize data object:
-% data = iddata(x_4dof(s:e,:),[f_4dof(s:e,:),d(s:e,:)],dt);
-data = iddata(x_4dof(s:e,:),f_4dof(s:e,:),dt);
+data = iddata(x_4dof(s:e,:),[f_4dof(s:e,:),d(s:e,:)],dt);
+% data = iddata(x_4dof(s:e,:),f_4dof(s:e,:),dt);
 
 % Estimate the values of the state-space model:
 sys = ssest(data,init_sys);
