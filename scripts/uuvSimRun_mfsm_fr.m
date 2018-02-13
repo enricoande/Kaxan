@@ -12,6 +12,7 @@ close all;
 %% Initialization:
 % Run the set-up file:
 rovSimSetup;
+tEnd1 = 35;
 
 % Initial conditions:
 ics = zeros(12,1);             % initial conditions (m & rad)
@@ -34,14 +35,14 @@ sfile = 'uuvSim_mfsm';
 load_system(sfile);
 % Setup Fast Restart:
 % set_param(sfile,'FastRestart','on');
-set_param(sfile,'SaveFinalState','on');
-set_param(sfile,'SaveCompleteFinalSimState','on');
+% set_param(sfile,'SaveFinalState','on');
+% set_param(sfile,'SaveCompleteFinalSimState','on');
 % hws = get_param(sfile,'modelworkspace');
 % hws.assignin('rov', rov);
 % save_system(sfile);
 
 %% Run the first part of the simulation with the Kaxan ROV:
-sout = sim(sfile,'StopTime','30');
+sout = sim(sfile,'StopTime',num2str(tEnd1));
 
 % Extract the data to be plotted:
 t = sout.tout;
@@ -51,40 +52,42 @@ f = [sout.get('logsout').getElement('thrust').Values.Data,...
 x_des = [sout.get('logsout').getElement('des_pos').Values.Data,...
     sout.get('logsout').getElement('des_vel').Values.Data];
 
-% Snatch the final simstate:
-assignin('base','xFinal',sout.get('xFinal'));
+% % Snatch the final simstate:
+% assignin('base','xFinal',sout.get('xFinal'));
 
 %% Run the second part of the simulation with the ROV carrying the sphere:
 % save_system(sfile);
-% close_system(sfile);
+close_system(sfile);
 % load_system(sfile);
 clear rov;
 load('rov_sphere.mat');
+ics = x(end,:);
+load_system(sfile);
 % hws = get_param(sfile,'modelworkspace');
 % hws.assignin('rov', rov);
 % save_system(sfile);
-set_param(sfile,'SimulationCommand','update');
+% set_param(sfile,'SimulationCommand','update');
 % set_param(bdroot,'SimulationCommand','update');
-set_param(sfile,'LoadInitialState','on');
-set_param(sfile,'InitialState','xFinal');
+% set_param(sfile,'LoadInitialState','on');
+% set_param(sfile,'InitialState','xFinal');
 % hws = get_param(sfile,'modelworkspace');
 % hws.assignin('rov', rov);
 % assignin('base','rov',rov);
-set_param(sfile,'SimulationCommand','update');
-sout = sim(sfile,'StopTime','60');
+% set_param(sfile,'SimulationCommand','update');
+sout = sim(sfile,'StopTime',num2str(tEnd1));
 
 %% Close the Simulink file:
 % set_param(sfile,'FastRestart','off');
-set_param(sfile,'LoadInitialState','off');
-set_param(sfile,'SaveFinalState','off');
-set_param(sfile,'SaveCompleteFinalSimState','off');
-save_system(sfile);
+% set_param(sfile,'LoadInitialState','off');
+% set_param(sfile,'SaveFinalState','off');
+% set_param(sfile,'SaveCompleteFinalSimState','off');
+% save_system(sfile);
 close_system(sfile);
 toc;
 
 %% Post-processing:
 % Extract the data to be plotted:
-t = [t;sout.tout];
+t = [t;sout.tout+tEnd1];
 x = [x;sout.get('logsout').getElement('state').Values.Data];
 f = [f;sout.get('logsout').getElement('thrust').Values.Data,...
     sout.get('logsout').getElement('forces').Values.Data];

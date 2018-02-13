@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Initialization:
-duration = 60;
+duration = 70;
 dt = 0.001;
 t = 0:dt:duration;
 n = length(t); 
@@ -21,12 +21,12 @@ trj_minsnap  = Trajectory('minimum_snap',waypoints,10,dt);
 for i=1:round(10/dt+1)
     % Minimum-snap trajectory:
     trj_minsnap = trj_minsnap.trajectory_generation(t(i));
-    x(1:6,i) = trj_minsnap.des_disp;
-    x(7:12,i) = trj_minsnap.des_vel;
+    x(1:6,i+round(5/dt)) = trj_minsnap.des_disp;
+    x(7:12,i+round(5/dt)) = trj_minsnap.des_vel;
 end
 
 %% Generate the second segment of the trajectory:
-for i=round(10/dt+2):round(15/dt)
+for i=round(15/dt+2):round(20/dt)
     x(1:6,i)  = [2,2,2,0,0,1];
     x(7:12,i) = [0,0,0,0,0,0];
 end
@@ -39,12 +39,12 @@ trj_minsnap  = Trajectory('minimum_snap',waypoints,10,dt);
 for i=1:round(10/dt+1)
     % Minimum-snap trajectory:
     trj_minsnap = trj_minsnap.trajectory_generation(t(i));
-    x(1:6,i+round(15/dt)) = trj_minsnap.des_disp;
-    x(7:12,i+round(15/dt)) = trj_minsnap.des_vel;
+    x(1:6,i+round(20/dt)) = trj_minsnap.des_disp;
+    x(7:12,i+round(20/dt)) = trj_minsnap.des_vel;
 end
 
 %% Generate the fourth segment of the trajectory:
-for i=round(25/dt+2):round(35/dt)
+for i=round(30/dt+2):round(40/dt)
     x(1:6,i)  = [0,0,0,0,0,0];
     x(7:12,i) = [0,0,0,0,0,0];
 end
@@ -57,12 +57,12 @@ trj_minsnap  = Trajectory('minimum_snap',waypoints,10,dt);
 for i=1:round(10/dt+1)
     % Minimum-snap trajectory:
     trj_minsnap = trj_minsnap.trajectory_generation(t(i));
-    x(1:6,i+round(35/dt)) = trj_minsnap.des_disp;
-    x(7:12,i+round(35/dt)) = trj_minsnap.des_vel;
+    x(1:6,i+round(40/dt)) = trj_minsnap.des_disp;
+    x(7:12,i+round(40/dt)) = trj_minsnap.des_vel;
 end
 
 %% Generate the sixth segment of the trajectory:
-for i=round(45/dt+2):round(50/dt)
+for i=round(50/dt+2):round(55/dt)
     x(1:6,i)  = [2,2,2,0,0,1];
     x(7:12,i) = [0,0,0,0,0,0];
 end
@@ -75,8 +75,8 @@ trj_minsnap  = Trajectory('minimum_snap',waypoints,10,dt);
 for i=1:round(10/dt+1)
     % Minimum-snap trajectory:
     trj_minsnap = trj_minsnap.trajectory_generation(t(i));
-    x(1:6,i+round(50/dt)) = trj_minsnap.des_disp;
-    x(7:12,i+round(50/dt)) = trj_minsnap.des_vel;
+    x(1:6,i+round(55/dt)) = trj_minsnap.des_disp;
+    x(7:12,i+round(55/dt)) = trj_minsnap.des_vel;
 end
 
 x  = x';

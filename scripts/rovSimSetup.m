@@ -12,13 +12,17 @@
 
 %% Simulation set-up:
 mdl.tStep = 0.01; % time step length (s)
-mdl.tEnd  = 60; %20;   % end time (s)
+mdl.tEnd  = 70; %20;   % end time (s)
 
 %% ROV model set-up:
 load('rov.mat');  % rov object  %'rov.mat' %'rov_sphere.mat'
 
 %% Trajectory data:
 load('trj.mat');
+
+% Disturbance data:
+d = [trj(1:101,1).^2;ones(length(trj)-101,1)];
+d = [trj(:,1),d];
 
 % % Trial trajectory:
 % t = 0:0.001:60;

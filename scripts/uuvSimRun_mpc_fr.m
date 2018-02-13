@@ -1,7 +1,8 @@
-% uuvSimRun.m     e.anderlini@ucl.ac.uk     23/01/2018
+% uuvSimRun.m     e.anderlini@ucl.ac.uk     13/02/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script simulates the dynamics of an UUV using trajectory control
-% with model predictive control.
+% with model predictive control. The file relies on fast restart to
+% simulate the ROV picking up an object.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean up:
@@ -11,6 +12,7 @@ close all;
 %% Initialization:
 % Run the set-up file:
 rovSimSetup;
+tEnd1 = 35;
 
 % Initial conditions:
 ics = zeros(12,1);             % initial conditions (m & rad)
@@ -67,20 +69,48 @@ sfile = 'uuvSim_mpc';
 % Load the Simulink file:
 load_system(sfile);
 
-%% Run the first shot:
-sout = sim(sfile,'StopTime',num2str(mdl.tEnd));
+%% Run the first part of the simulation with the Kaxan ROV:
+sout = sim(sfile,'StopTime',num2str(tEnd1));
 
-%% Close the Simulink file:
-close_system(sfile);
-toc;
-
-%% Post-processing:
 % Extract the data to be plotted:
 t = sout.tout;
 x = sout.get('logsout').getElement('state').Values.Data;
 f = [sout.get('logsout').getElement('thrust').Values.Data,...
     sout.get('logsout').getElement('forces').Values.Data];
 % x_des = [sout.get('logsout').getElement('des_pos').Values.Data,...
+%     sout.get('logsout').getElement('des_vel').Values.Data];
+
+close_system(sfile);
+
+%% Run the second part of the simulation with the ROV carrying the sphere:
+clear rov mpc_kaxan;
+% Load new simulation data:
+load('rov_sphere.mat');
+ics = x(end,:);
+% Load the new MPC controller:
+load('ss_rov_sphere.mat');
+% Define variable names:
+sys.InputName = {'T1','T2','T3','T4','d'};
+% Define model variables:
+sys.InputGroup.MV = [1,2,3,4];
+% Define 
+sys.InputGroup.MD = 5;
+mpc_kaxan = mpc(sys,dt,p,m,W);
+% Re-load the Simulink file:
+load_system(sfile);
+% Re-run Simulink:
+sout = sim(sfile,'StopTime',num2str(tEnd1));
+
+close_system(sfile);
+toc;
+
+%% Post-processing:
+% Extract the data to be plotted:
+t = [t;sout.tout+tEnd1];
+x = [x;sout.get('logsout').getElement('state').Values.Data];
+f = [f;sout.get('logsout').getElement('thrust').Values.Data,...
+    sout.get('logsout').getElement('forces').Values.Data];
+% x_des = [x_des;sout.get('logsout').getElement('des_pos').Values.Data,...
 %     sout.get('logsout').getElement('des_vel').Values.Data];
 
 % Plot the AUV's motions:
@@ -90,8 +120,8 @@ plotMotions(t,x);
 % % Plot the difference in motions (error):
 % plotMotions(t,x_des-x);
 
-% % Plot the AUV's forces:
-% plotForces(t,f);
+% Plot the AUV's forces:
+plotForces(t,f);
 % % Plot the AUV's path:
 % plotPath(x,waypoints);
 % % Animate the AUV's motion:
