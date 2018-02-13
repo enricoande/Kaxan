@@ -25,5 +25,5 @@ d = [trj(1:101,1).^2;ones(length(trj)-101,1)];
 d = [trj(:,1),d];
 
 % % Trial trajectory:
-% t = 0:0.001:60;
+% t = 0:0.001:70;
 % trj = [t',zeros(length(t),12)];

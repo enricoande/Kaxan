@@ -64,6 +64,11 @@ function Output(block)
     
     % Accumulate the signal (basically, integrate from t=0 s):
     block.Dwork(1).Data = block.Dwork(1).Data + signal;
+    % Avoid wind-up:
+    for i=1:4
+        block.Dwork(1).Data(i) = min(block.Dwork(1).Data(i),1);
+        block.Dwork(1).Data(i) = max(block.Dwork(1).Data(i),-1);
+    end
 
     % Return the accumulated signal:
     block.OutputPort(1).Data = block.Dwork(1).Data;
