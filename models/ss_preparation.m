@@ -1,8 +1,8 @@
 function ss_preparation(block)
-% ss_preparation.m     e.anderlini@ucl.ac.uk     01/02/2018
+% ss_preparation.m     e.anderlini@ucl.ac.uk     14/02/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This is a Level-2 Matlab S-function for the computation of the velocity
-% vector in the inertial reference frame.
+% This is a Level-2 Matlab S-function for the off-line identification of
+% the state-space model of the ROV.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     setup(block);
 end
@@ -10,7 +10,7 @@ end
 %% Set up the block:
 function setup(block)
     % Register number of input and output ports:
-    block.NumInputPorts  = 8;
+    block.NumInputPorts  = 2;
     block.NumOutputPorts = 4;
 
     % Setup functional port properties to dynamically inherited:
@@ -18,38 +18,19 @@ function setup(block)
     block.SetPreCompOutPortInfoToDynamic;
     
     % Size the input ports correctly and specify whether there is direct feedthrough:
-%     block.InputPort(1).Dimensions        = 12;
-%     block.InputPort(1).DirectFeedthrough = true;
-%     block.InputPort(2).Dimensions        = 12;
-%     block.InputPort(2).DirectFeedthrough = true;
-%     block.InputPort(3).Dimensions        = 12;
-%     block.InputPort(3).DirectFeedthrough = true;
-%     block.InputPort(4).Dimensions        = 12;
-%     block.InputPort(4).DirectFeedthrough = true;
-%     block.InputPort(5).Dimensions        = 12;
-%     block.InputPort(5).DirectFeedthrough = true;
-%     block.InputPort(6).Dimensions        = 12;
-%     block.InputPort(6).DirectFeedthrough = true;
-%     block.InputPort(7).Dimensions        = 12;
-%     block.InputPort(7).DirectFeedthrough = true;
-%     block.InputPort(8).Dimensions        = 12;
-%     block.InputPort(8).DirectFeedthrough = true;
-    for i=1:8
-        block.InputPort(i).Dimensions        = 12;
-        block.InputPort(i).DirectFeedthrough = true;
-        block.InputPort(i).SamplingMode = 0;
-    end
+    block.InputPort(1).Dimensions        = 8;
+    block.InputPort(1).DirectFeedthrough = true;
+    block.InputPort(1).SamplingMode = 0;
+    block.InputPort(2).Dimensions        = 4;
+    block.InputPort(2).DirectFeedthrough = true;
+    block.InputPort(2).SamplingMode = 0;
     
     % Size the output ports correctly:
     block.OutputPort(1).Dimensions   = [8,8];
-    block.OutputPort(2).Dimensions   = [8,4];
+    block.OutputPort(2).Dimensions   = [8,5];
     block.OutputPort(3).Dimensions   = [8,8];
-    block.OutputPort(4).Dimensions   = [8,4];
+    block.OutputPort(4).Dimensions   = [8,5];
     % Set the output ports' sampling mode:
-%     block.OutputPort(1).SamplingMode = 'Sample';
-%     block.OutputPort(2).SamplingMode = 'Sample';
-%     block.OutputPort(3).SamplingMode = 'Sample';
-%     block.OutputPort(4).SamplingMode = 'Sample';
     for i=1:4
         block.OutputPort(i).SamplingMode = 'Sample';
     end
@@ -57,39 +38,98 @@ function setup(block)
     % Define the number of parameters:
     block.NumDialogPrms = 4;
 
-    % Set block sample time to continuous:
-    block.SampleTimes = [0.1,0];
+    % Set block sample time to fixed time:
+    block.SampleTimes = [0.01,0];
 
     % Set the block simStateCompliance to default:
     block.SimStateCompliance = 'DefaultSimState';
 
     % Register methods:
+    block.RegBlockMethod('PostPropagationSetup', @DoPostPropSetup);
+    block.RegBlockMethod('InitializeConditions', @InitConditions);
     block.RegBlockMethod('Outputs',              @Output);    
+end
+
+%% Set-up the dynamic work vector:
+function DoPostPropSetup(block)
+    block.NumDworks = 12;
+    name = {'x','y','z','psi','x_dot','y_dot','z_dot','phi_dot','u_1',...
+        'u_2','u_3','u_4'};
+    for i=1:12
+        block.Dwork(i).Name = name{i}; 
+        block.Dwork(i).Dimensions      = 15000;
+        block.Dwork(i).DatatypeID      = 0;    % double
+        block.Dwork(i).Complexity      = 'Real';
+        block.Dwork(i).UsedAsDiscState = true;
+    end
+%     block.Dwork(13).Name = 'counter'; 
+%     block.Dwork(13).Dimensions      = 1;
+%     block.Dwork(13).DatatypeID      = 0;       % int8
+%     block.Dwork(13).Complexity      = 'Real';
+%     block.Dwork(13).UsedAsDiscState = true;
+end
+
+%% Initialize the user data:
+function InitConditions(block)
+    % Initialize the DWork vectors:
+    for i=1:12
+        block.Dwork(i).Data = zeros(15000,1);
+    end
+%     block.Dwork(13).Data = 0;
+
+    % Initialize the state-space model:
+    sysd = ss(block.DialogPrm(1).Data,block.DialogPrm(2).Data,...
+        block.DialogPrm(3).Data,block.DialogPrm(4).Data,0.1);
+    % Store the structure in the block's user's data: 
+    set_param(block.BlockHandle, 'UserData', sysd);
 end
 
 %% Output the desired position, velocity and acceleration:
 function Output(block)
-    % Build the state-space system matrices Ad and Bd:
-    Ad = [];
-    Bd = [];
-    for i=1:8
-        Ad = [Ad;block.InputPort(i).Data(1:8)'];
-        Bd = [Bd;block.InputPort(i).Data(9:12)'];
-    end
+    % Access the identified state-space model stored in the user's data:
+    sysd = get_param(block.BlockHandle, 'UserData');
     
-    % Output the initial matrices Ad and Bd during the initialization:
-    if block.CurrentTime<10
-        for i=1:2
-            block.OutputPort(i).Data = block.DialogPrm(i).Data;
+    % Store the simulation data to memory for system identification:
+    c = round(block.CurrentTime/0.01)+1;  % counter
+    for i=1:8
+        block.Dwork(i).Data(c) = block.InputPort(1).Data(i);
+    end
+    for i=1:4
+        block.Dwork(i+8).Data(c) = block.InputPort(2).Data(i);
+    end
+        
+    % Estimate the matrices Ad and Bd on-line in batch mode:
+    if block.CurrentTime>5 && mod(block.CurrentTime,5)==0
+        A = [zeros(4),eye(4);eye(4),eye(4)];
+        B = [zeros(4);eye(4)];
+        C = eye(8);
+        % Prepare a state-space model with identifiable parameters:
+        init_sys = idss(A,B,C,0,'Ts',0);
+        init_sys.Structure.A.Free(1:4,:) = false;
+        init_sys.Structure.B.Free(1:4,:) = false;
+        init_sys.Structure.C.Free = false;
+        init_sys.Structure.D.Free = false;
+        % Initialize data object:
+        states = [];
+        in = [];
+        for i=1:8
+            states = [states,block.Dwork(i).Data(1:c)];
         end
-    % Otherwise output the matrices Ad and Bd estimated on-line:
-    else
-        block.OutputPort(1).Data = Ad;
-        block.OutputPort(2).Data = Bd;
-    end
-
-    % Output the matrices Cd and Dd:
-    for i=3:4
-        block.OutputPort(i).Data = block.DialogPrm(i).Data;
-    end
+        for i=1:4
+            in = [in,block.Dwork(i+8).Data(1:c)];
+        end
+        data = iddata(states,in,0.01);
+        % Estimate the values of the state-space model:
+        sys = ssest(data,init_sys);
+        % Convert the state-space model to discrete time:
+        sysd = c2d(sys,0.1);
+        % Store the identified state-space model in memory:
+        set_param(block.BlockHandle, 'UserData', sysd);
+    end    
+    
+    % Output the identified matrices:
+    block.OutputPort(1).Data = sysd.A;
+    block.OutputPort(2).Data = sysd.B;
+    block.OutputPort(3).Data = sysd.C;
+    block.OutputPort(4).Data = sysd.D;
 end

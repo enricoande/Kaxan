@@ -34,9 +34,7 @@ Tinv = pinv(T);                % inverse of the thrust allocation matrix
 % C = eye(8);
 
 % Load the identified system as an alternative:
-load('ss.mat');
-% Create the continuous-timestate-space system:
-sys  = ss(A,B,C,0);
+load('ss_rov.mat');
 % Define the time step of the model predictive control:
 dt = 0.1;
 % Convert it to discrete time:
@@ -48,6 +46,13 @@ Cd = sysd.C;
 Dd = sysd.D;
 
 %% MPC:
+% Define variable names:
+sysd.InputName = {'T1','T2','T3','T4','d'};
+% Define the indices of the model variables:
+sysd.InputGroup.ManipulatedVariables = [1,2,3,4];
+% Define the index of the disturbance:
+sysd.InputGroup.MeasuredDisturbances = 5;
+
 % Define the prediction and control horizons:
 p = 25;
 m = 10;
@@ -60,7 +65,7 @@ W.OV     = [1,1,1,1,0,0,0,0]; % output variables weights
 X  = zeros(8,1);
 DX = zeros(8,1);
 Y  = zeros(8,1);
-U  = zeros(4,1);
+U  = zeros(5,1);
 
 % Initialize the model predictive control object:
 mpc_kaxan = mpc(sysd,dt,p,m,W);

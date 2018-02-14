@@ -7,7 +7,7 @@ clear;
 close all;
 
 %% Load the data to be fitted:
-load('tmp_rov_sphere.mat');
+load('tmp_rov_mpc.mat');
 dt = t(2)-t(1);
 tEnd = t(end);
 
@@ -22,7 +22,7 @@ simin = [t,f_4dof,d,x_4dof];
 % simin = [t,f_4dof,x_4dof];
 
 %% Load the ROV data:
-load('rov_sphere.mat');
+load('rov.mat');
 
 %% Generate the LTI model of the Kaxan ROV in 4 DOF:
 M = [rov.M_B(1:3,1:3),rov.M_B(1:3,6);rov.M_B(6,1:3),rov.M_B(6,6)] + ...
@@ -46,11 +46,16 @@ R = 0.05*eye(8);
 B = [B,zeros(8,1)];
 B(7,5) = 0.25;
 D = zeros(8,5);
+% A = [zeros(4),eye(4);zeros(4),-0.5*eye(4)];
+% A(8,8) = -5;
+% B = [zeros(4);0.01*eye(4)];
+% B(8,4) = 0.2;
 
 %% Prepare a state-space model with identifiable parameters structure:
 init_sys = idss(A,B,C,D,'Ts',0);  % continuous-time state-space model
 % Constrain some parameters:
 init_sys.Structure.A.Free(1:4,:) = false;
+init_sys.Structure.A.Free(5:8,1:4) = false;
 init_sys.Structure.B.Free(1:4,:) = false;
 % init_sys.Structure.B.Free(1:6,5) = false;
 % init_sys.Structure.B.Free(8,5) = false;
