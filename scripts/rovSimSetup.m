@@ -21,6 +21,7 @@ load('rov.mat');  % rov object  %'rov.mat' %'rov_sphere.mat'
 load('trj.mat');
 
 % Disturbance data:
+% d = zeros(length(trj),1);
 d = [trj(1:101,1).^2;ones(length(trj)-101,1)];
 d = [trj(:,1),d];
 

@@ -1,8 +1,8 @@
-% uuvSimRun.m     e.anderlini@ucl.ac.uk     13/02/2018
+% uuvSimRun.m     e.anderlini@ucl.ac.uk     15/02/2018
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This script simulates the dynamics of an UUV using trajectory control
-% with model predictive control. The file relies on fast restart to
-% simulate the ROV picking up an object.
+% with adaptive model predictive control. The file relies on fast restart
+% to simulate the ROV picking up an object.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean up:
@@ -37,43 +37,53 @@ Tinv = pinv(T);                % inverse of the thrust allocation matrix
 
 % Load the identified system as an alternative:
 load('ss_rov.mat');
-% % Create the continuous-timestate-space system:
-% sys  = ss(A,B,C,0);
+% Define the time step of the model predictive control:
+dt = 0.1;
+% Convert it to discrete time:
+sysd = c2d(sys,dt);
+% Extract the matrices of the discrete system to initialize adaptive MPC:
+Ad = sysd.A;
+Bd = sysd.B;
+Cd = sysd.C;
+Dd = sysd.D;
+A = sys.A;
+B = sys.B;
+C = sys.C;
+D = sys.D;
 
 %% MPC:
 % Define variable names:
-sys.InputName = {'T1','T2','T3','T4','d'};
+sysd.InputName = {'T1','T2','T3','T4','d'};
 % Define the indices of the model variables:
-sys.InputGroup.MV = [1,2,3,4];
+sysd.InputGroup.ManipulatedVariables = [1,2,3,4];
 % Define the index of the disturbance:
-sys.InputGroup.MD = 5;
+sysd.InputGroup.MeasuredDisturbances = 5;
 
 % Define the prediction and control horizons:
 p = 25;
 m = 10;
-% Define the time step of the model predictive control:
-dt = 0.1;
 % Define other parameters:
-nu = 4;   % no. manipulated variables (4 DOF thrust vector) + noise
+nu = 4;   % no. manipulated variables (4 DOF thrust vector)
 W.MV     = zeros(1,nu);       % manipulated variables weights
 W.MVRate = 0.1*ones(1,nu);    % manipulated variables increment weights
 W.OV     = [1,1,1,1,0,0,0,0]; % output variables weights
+% Define parameters for adaptive control:
+X  = zeros(8,1);
+DX = zeros(8,1);
+Y  = zeros(8,1);
+U  = zeros(5,1);
 
 % Initialize the model predictive control object:
-mpc_kaxan = mpc(sys,dt,p,m,W);
-% % Overwrite default scale factors:
-% for i = 1:4
-%     mpc_kaxan.MV(i).ScaleFactor = 100;
-% end
-% for i=1:3
-%     mpc_kaxan.OV(i).ScaleFactor = 2;
-% end
-% mpc_kaxan.OV(8).ScaleFactor = 0.5;
+mpc_kaxan = mpc(sysd,dt,p,m,W);
+
+%% On-line Recursive Least-Squares Estimator preparation:
+% Specify values for the covariance matrix:
+R = 0.01*eye(12);
 
 tic;
 %% Load the Simulink file:
 % Simulink file:
-sfile = 'uuvSim_mpc';
+sfile = 'uuvSim_ampc';
 % Load the Simulink file:
 load_system(sfile);
 
@@ -91,27 +101,31 @@ V = sout.get('logsout').getElement('V').Values.Data;
 close_system(sfile);
 
 %% Run the second part of the simulation with the ROV carrying the sphere:
-clear rov mpc_kaxan;
+clear rov d mpc_kaxan;
 % Load new simulation data:
 load('rov_sphere.mat');
 ics = x(end,:);
+% Recompute the disturbance data:
+d = [trj(1:101,1).^2;ones(length(trj)-101,1)];
+d = [trj(:,1),d];
 % Load the new MPC controller:
 load('ss_rov_sphere.mat');
+sysd = c2d(sys,dt);
+% Extract the matrices of the discrete system to initialize adaptive MPC:
+Ad = sysd.A;
+Bd = sysd.B;
+Cd = sysd.C;
+Dd = sysd.D;
+A = sys.A;
+B = sys.B;
+C = sys.C;
+D = sys.D;
 % Define variable names:
-sys.InputName = {'T1','T2','T3','T4','d'};
+sysd.InputName = {'T1','T2','T3','T4','d'};
 % Define model variables:
-sys.InputGroup.MV = [1,2,3,4];
-% Define 
-sys.InputGroup.MD = 5;
-mpc_kaxan = mpc(sys,dt,p,m,W);
-% % % Overwrite default scale factors:
-% % for i = 1:4
-% %     mpc_kaxan.MV(i).ScaleFactor = 100;
-% % end
-% % for i=1:3
-% %     mpc_kaxan.OV(i).ScaleFactor = 2;
-% % end
-% % mpc_kaxan.OV(8).ScaleFactor = 0.5;
+sysd.InputGroup.ManipulatedVariables = [1,2,3,4];
+sysd.InputGroup.MeasuredDisturbances = 5;
+mpc_kaxan = mpc(sysd,dt,p,m,W);
 % Re-load the Simulink file:
 load_system(sfile);
 % Re-run Simulink:
@@ -158,6 +172,7 @@ plotMotions(t,x);
 plotThrustersForces(t,tf);
 % Plot the voltage in each thruster:
 % plotThrustersVoltage(t,V);
+
 
 % % Plot the AUV's path:
 % plotPath(x,waypoints);

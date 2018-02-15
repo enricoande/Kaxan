@@ -44,6 +44,10 @@ Ad = sysd.A;
 Bd = sysd.B;
 Cd = sysd.C;
 Dd = sysd.D;
+A = sys.A;
+B = sys.B;
+C = sys.C;
+D = sys.D;
 
 %% MPC:
 % Define variable names:

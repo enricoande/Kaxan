@@ -10,7 +10,7 @@ end
 %% Set up the block:
 function setup(block)
     % Register number of input and output ports:
-    block.NumInputPorts  = 2;
+    block.NumInputPorts  = 3;
     block.NumOutputPorts = 4;
 
     % Setup functional port properties to dynamically inherited:
@@ -24,6 +24,9 @@ function setup(block)
     block.InputPort(2).Dimensions        = 4;
     block.InputPort(2).DirectFeedthrough = true;
     block.InputPort(2).SamplingMode = 0;
+    block.InputPort(3).Dimensions        = 1;
+    block.InputPort(3).DirectFeedthrough = true;
+    block.InputPort(3).SamplingMode = 0;
     
     % Size the output ports correctly:
     block.OutputPort(1).Dimensions   = [8,8];
@@ -36,7 +39,7 @@ function setup(block)
     end
     
     % Define the number of parameters:
-    block.NumDialogPrms = 4;
+    block.NumDialogPrms = 8;
 
     % Set block sample time to fixed time:
     block.SampleTimes = [0.01,0];
@@ -52,30 +55,24 @@ end
 
 %% Set-up the dynamic work vector:
 function DoPostPropSetup(block)
-    block.NumDworks = 12;
+    block.NumDworks = 13;
     name = {'x','y','z','psi','x_dot','y_dot','z_dot','phi_dot','u_1',...
-        'u_2','u_3','u_4'};
-    for i=1:12
+        'u_2','u_3','u_4','d'};
+    for i=1:13
         block.Dwork(i).Name = name{i}; 
-        block.Dwork(i).Dimensions      = 15000;
+        block.Dwork(i).Dimensions      = 7001;
         block.Dwork(i).DatatypeID      = 0;    % double
         block.Dwork(i).Complexity      = 'Real';
         block.Dwork(i).UsedAsDiscState = true;
     end
-%     block.Dwork(13).Name = 'counter'; 
-%     block.Dwork(13).Dimensions      = 1;
-%     block.Dwork(13).DatatypeID      = 0;       % int8
-%     block.Dwork(13).Complexity      = 'Real';
-%     block.Dwork(13).UsedAsDiscState = true;
 end
 
 %% Initialize the user data:
 function InitConditions(block)
     % Initialize the DWork vectors:
-    for i=1:12
-        block.Dwork(i).Data = zeros(15000,1);
+    for i=1:13
+        block.Dwork(i).Data = zeros(7001,1);
     end
-%     block.Dwork(13).Data = 0;
 
     % Initialize the state-space model:
     sysd = ss(block.DialogPrm(1).Data,block.DialogPrm(2).Data,...
@@ -97,15 +94,15 @@ function Output(block)
     for i=1:4
         block.Dwork(i+8).Data(c) = block.InputPort(2).Data(i);
     end
+    block.Dwork(13).Data(c) = block.InputPort(3).Data;
         
     % Estimate the matrices Ad and Bd on-line in batch mode:
     if block.CurrentTime>5 && mod(block.CurrentTime,5)==0
-        A = [zeros(4),eye(4);eye(4),eye(4)];
-        B = [zeros(4);eye(4)];
-        C = eye(8);
         % Prepare a state-space model with identifiable parameters:
-        init_sys = idss(A,B,C,0,'Ts',0);
+        init_sys = idss(block.DialogPrm(5).Data,block.DialogPrm(6).Data,...
+            block.DialogPrm(7).Data,0,'Ts',0);
         init_sys.Structure.A.Free(1:4,:) = false;
+        init_sys.Structure.A.Free(5:8,1:4) = false;
         init_sys.Structure.B.Free(1:4,:) = false;
         init_sys.Structure.C.Free = false;
         init_sys.Structure.D.Free = false;
@@ -115,7 +112,7 @@ function Output(block)
         for i=1:8
             states = [states,block.Dwork(i).Data(1:c)];
         end
-        for i=1:4
+        for i=1:5
             in = [in,block.Dwork(i+8).Data(1:c)];
         end
         data = iddata(states,in,0.01);
